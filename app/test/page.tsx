@@ -3,6 +3,19 @@
 import CharacterSelect from '@/components/character-select';
 import { useState, useRef, type ChangeEvent } from 'react';
 
+const CHARACTER_VOICE_MAP: Record<string, string> = {
+  Alex: 'Allison',
+  Ava: 'Eve',
+  Beau: 'Matilda',
+  Cleo: 'Alesha',
+  Dex: 'Bill',
+  Elle: 'Diane',
+  Finn: 'Hale',
+  Nia: 'Alexandra',
+  Noah: 'Jason',
+  Quinn: 'Justin',
+};
+
 const ACCEPTED_AUDIO_TYPES = [
   'audio/mpeg',
   'audio/mp3',
@@ -20,6 +33,8 @@ export default function TestPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
 
+  const [selectedVoice, setSelectedVoice] = useState<string>('Aria');
+
   const [audioMode, setAudioMode] = useState<AudioMode>('tts');
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
@@ -30,7 +45,21 @@ export default function TestPage() {
 
   const audioInputRef = useRef<HTMLInputElement>(null);
 
-  // Audio validation & upload handler
+  // Directly receives the clean character name (e.g. "Alex")
+  const handleCharacterSelected = (
+    file: File | null,
+    _previewUrl: string | null,
+    characterName?: string
+  ) => {
+    setImageFile(file);
+    setImageError(null);
+
+    if (characterName) {
+      const voice = CHARACTER_VOICE_MAP[characterName] || 'Aria';
+      setSelectedVoice(voice);
+    }
+  };
+
   const handleAudioInput = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setAudioError(null);
@@ -53,7 +82,6 @@ export default function TestPage() {
     if (audioInputRef.current) audioInputRef.current.value = '';
   };
 
-  // Video generation submission
   const handleGenerate = async () => {
     if (!imageFile) {
       setImageError('Please select or upload a character image first.');
@@ -83,6 +111,7 @@ export default function TestPage() {
         formData.append('audio', audioFile);
       } else {
         formData.append('text', script);
+        formData.append('voice', selectedVoice);
       }
 
       const res = await fetch('/api/test-veed', {
@@ -113,14 +142,9 @@ export default function TestPage() {
     <main className="min-h-screen bg-slate-950 text-slate-100 p-8 max-w-3xl mx-auto font-sans">
       <h1 className="text-2xl font-bold mb-6 text-amber-400">🎬 VEED Fabric 1.0 Test</h1>
 
-      {/* Character Selector (Gallery + Direct Upload) */}
+      {/* Character Selector */}
       <div className="mb-4">
-        <CharacterSelect
-          onImageSelected={(file) => {
-            setImageFile(file);
-            setImageError(null);
-          }}
-        />
+        <CharacterSelect onImageSelected={handleCharacterSelected} />
         {imageError && <p className="mt-2 text-xs text-red-400">{imageError}</p>}
       </div>
 
@@ -158,7 +182,7 @@ export default function TestPage() {
           value={script}
           onChange={(e) => setScript(e.target.value)}
           rows={3}
-          placeholder=""
+          placeholder="Enter the line your avatar should speak"
           className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white mb-4 text-sm font-mono focus:outline-none focus:border-amber-500"
         />
       ) : (
@@ -189,7 +213,7 @@ export default function TestPage() {
       )}
       {audioError && <p className="mb-4 text-xs text-red-400">{audioError}</p>}
 
-      {/* Generate Action Button */}
+      {/* Generate Button */}
       <button
         type="button"
         onClick={handleGenerate}
@@ -199,10 +223,10 @@ export default function TestPage() {
         {loading ? 'Generating Video...' : 'Generate 🚀'}
       </button>
 
-      {/* Video Preview Section */}
+      {/* Video Preview */}
       {videoUrl && (
         <div className="mb-6 flex flex-col items-center bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <p className="text-xs text-slate-400 mb-3 self-start font-mono"></p>
+          
           <video
             src={videoUrl}
             controls
@@ -212,7 +236,7 @@ export default function TestPage() {
         </div>
       )}
 
-      {/* Error Feedback */}
+      {/* Error Message */}
       {errorMessage && (
         <div className="p-4 bg-rose-950/60 border border-rose-800 rounded-xl text-rose-300 text-sm">
           {errorMessage}

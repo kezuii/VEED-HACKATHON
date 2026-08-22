@@ -8,7 +8,7 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gi
 type ImageMode = 'upload' | 'gallery';
 
 interface CharacterSelectProps {
-  onImageSelected?: (file: File | null, previewUrl: string | null) => void;
+  onImageSelected?: (file: File | null, previewUrl: string | null, characterName?: string) => void;
 }
 
 export default function CharacterSelect({ onImageSelected }: CharacterSelectProps) {
@@ -23,6 +23,7 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
 
   const imageInputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch gallery images
   useEffect(() => {
     fetch('/api/list-images')
       .then((res) => res.json())
@@ -32,21 +33,32 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
       .catch(() => setImageError('Failed to load image gallery.'));
   }, []);
 
+  // Helper to extract only the character name (e.g., "Alex_Full.png" -> "Alex")
+  const extractCharacterName = (fileName: string) => {
+    return fileName.split('_')[0].split('.')[0].trim();
+  };
+
+  // Gallery image selection
   const handleSelectGalleryImage = async (url: string, name: string) => {
     setImageError(null);
     setSelectedGalleryUrl(url);
+
+    const characterName = extractCharacterName(name);
+
     try {
       const res = await fetch(url);
       const blob = await res.blob();
       const file = new File([blob], name, { type: blob.type });
       setImageFile(file);
       setImagePreview(url);
-      onImageSelected?.(file, url);
+      // Pass only the character name (e.g. "Alex")
+      onImageSelected?.(file, url, characterName);
     } catch {
       setImageError('Failed to load the selected image.');
     }
   };
 
+  // Uploaded file processing
   const processFile = (file: File) => {
     setImageError(null);
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
@@ -59,10 +71,13 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
     }
 
     const previewUrl = URL.createObjectURL(file);
+    const characterName = extractCharacterName(file.name);
+
     setImageFile(file);
     setImagePreview(previewUrl);
     setSelectedGalleryUrl('');
-    onImageSelected?.(file, previewUrl);
+    // Pass only the character name (e.g. "Alex")
+    onImageSelected?.(file, previewUrl, characterName);
   };
 
   const handleImageInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -89,6 +104,7 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
     <div className="w-full rounded-xl border border-slate-800 bg-slate-950 p-4">
       <label className="mb-2 block text-xs text-slate-400">Character Image</label>
 
+      {/* Mode Switcher */}
       <div className="mb-4 flex gap-2">
         <button
           type="button"
@@ -115,7 +131,7 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
       </div>
 
       {imageMode === 'gallery' ? (
-        /* 드롭다운 없이 오직 썸네일 그리드만 표시 */
+        /* Gallery Thumbnail Grid */
         <div className="mb-4 grid grid-cols-4 gap-2">
           {galleryImages.map((img) => (
             <button
@@ -141,6 +157,7 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
           ))}
         </div>
       ) : (
+        /* Drag & Drop Upload */
         <div
           onClick={() => imageInputRef.current?.click()}
           onDragOver={(e) => {
@@ -165,6 +182,7 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
         </div>
       )}
 
+      {/* Selected Preview */}
       {imagePreview && (
         <div className="relative mb-4 inline-block">
           <img
@@ -183,6 +201,7 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
         </div>
       )}
 
+      {/* Error Message */}
       {imageError && <p className="mb-4 text-xs text-red-400">{imageError}</p>}
     </div>
   );
