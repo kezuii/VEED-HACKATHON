@@ -1,5 +1,9 @@
 # VEED Hack — Multi-Agent Video Studio
 
+# 🚀 LIVE VERSION
+
+# ➡️ https://veed-hackathon-eosin.vercel.app/
+
 A Next.js 16 app that turns a single prompt into a plan of specialized AI agents, runs them
 (optionally with live web search), and renders the results as talking-avatar videos via VEED's
 Fabric model on fal.ai.
