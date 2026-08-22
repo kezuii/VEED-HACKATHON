@@ -1,0 +1,92 @@
+{
+  "agents": [
+    {
+      "id": "strategist",
+      "name": "Ava",
+      "agentType": "Strategist",
+      "title": "Strategist",
+      "summary": "Defines strategy, positioning, and actionable recommendations to guide the overall approach.",
+      "description": "Turns the objective into a clear strategy — positioning, planning, and concrete recommendations for the rest of the team to build on.",
+      "capabilities": ["strategy", "planning", "positioning", "recommendations"],
+      "prompt": null,
+      "avatarBg": "bg-orange-100"
+    },
+    {
+      "id": "copywriter",
+      "name": "Beau",
+      "agentType": "Copywriter",
+      "title": "Copywriter",
+      "summary": "Writes marketing copy, scripts, social posts, and messaging tailored to the brief.",
+      "description": "Drafts scripts, captions, social posts, and on-screen text tailored to the brief.",
+      "capabilities": ["marketing copy", "scripts", "social posts", "messaging"],
+      "prompt": null,
+      "avatarBg": "bg-blue-100"
+    },
+    {
+      "id": "video-producer",
+      "name": "Cleo",
+      "agentType": "Video Producer",
+      "title": "Video Producer",
+      "summary": "Develops video concepts, scripts, and storyboards, and produces the final video output.",
+      "description": "Turns concepts into video — writing scripts and storyboards, then producing the finished cut.",
+      "capabilities": ["video concepts", "scripts", "storyboards", "video generation"],
+      "prompt": null,
+      "avatarBg": "bg-amber-100"
+    },
+    {
+      "id": "researcher",
+      "name": "Dex",
+      "agentType": "Researcher",
+      "title": "Researcher",
+      "summary": "Conducts web, competitor, and market research to ground the task in facts.",
+      "description": "Gathers reference material — web research, competitor research, market research, and fact-finding — to ground the task.",
+      "capabilities": ["web research", "competitor research", "market research", "fact finding"],
+      "prompt": null,
+      "avatarBg": "bg-emerald-100"
+    },
+    {
+      "id": "creative-director",
+      "name": "Elle",
+      "agentType": "Creative Director",
+      "title": "Creative Director",
+      "summary": "Shapes creative concepts, campaign ideas, and storytelling direction for the work.",
+      "description": "Generates creative concepts, campaign ideas, and storytelling direction that hold the piece together.",
+      "capabilities": ["creative concepts", "campaign ideas", "storytelling"],
+      "prompt": null,
+      "avatarBg": "bg-pink-100"
+    },
+    {
+      "id": "reviewer",
+      "name": "Finn",
+      "agentType": "Reviewer",
+      "title": "Reviewer",
+      "summary": "Fact-checks, quality-checks, and critiques outputs before they're finalized.",
+      "description": "Fact-checks the output and runs quality control, critique, and validation before anything ships.",
+      "capabilities": ["fact checking", "quality control", "critique", "validation"],
+      "prompt": null,
+      "avatarBg": "bg-purple-100"
+    },
+    {
+      "id": "analyst",
+      "name": "Nia",
+      "agentType": "Analyst",
+      "title": "Analyst",
+      "summary": "Analyzes data, compares options, and interprets results to inform decisions.",
+      "description": "Analyzes data, runs comparisons and rankings, and interprets results to support decisions.",
+      "capabilities": ["analysis", "comparisons", "rankings", "data interpretation"],
+      "prompt": null,
+      "avatarBg": "bg-sky-100"
+    },
+    {
+      "id": "clarification",
+      "name": "Quinn",
+      "agentType": "Clarification Agent",
+      "title": "Clarification Agent",
+      "summary": "Determines whether the user's request has enough information to proceed, and asks only the minimum clarifying questions needed when it doesn't.",
+      "description": "Reviews a task before it's planned and asks the user only the smallest number of clarifying questions needed when critical information is missing.",
+      "capabilities": ["ambiguity detection", "clarifying questions", "assumption-making"],
+      "prompt": "You are a clarification agent in a multi-agent AI system.\n\nYour job is to determine whether the user's request contains enough information to proceed confidently.\n\nYou are reviewing a task that is currently being planned by another AI agent.\n\nAsk the user for clarification ONLY when missing information would materially affect the quality, direction, or outcome of the task.\n\nDo NOT ask unnecessary questions. If a reasonable assumption can be made without significantly affecting the result, make the assumption instead.\n\nStay HIGH-LEVEL. Ask about the single biggest, most decision-changing gap only — never granular or nice-to-have details. Return at most one question per turn, in the \"questions\" array. Once the one most critical gap has been addressed, do not chain into a second, less important question — prefer needsClarification: false and let the team proceed with reasonable assumptions for everything else.\n\nWhen clarification is needed:\n\n1. Identify the single most important ambiguity or missing information — the one gap that would most change the outcome if guessed wrong.\n2. Explain briefly why it matters.\n3. Ask only that one question. Do not ask about a second or third topic in the same turn.\n4. Prefer questions that give the user clear options where appropriate.\n5. Do not ask about information that can reasonably be researched or inferred by another agent.\n6. Do not ask the user to specify technical implementation details.\n7. Do not ask the user to choose which AI agent should handle the task.\n8. Check the execution plan / prior answers below. If the user's most recent answer is a skip signal — e.g. \"skip\", \"i don't know\", \"idk\", \"not sure\", \"no preference\", \"n/a\", \"whatever\", \"up to you\" — treat that topic as fully resolved: make a reasonable assumption and never ask about it again, in any form, for the rest of this task.\n9. After one question has already been asked and answered (skipped or not), only ask a follow-up if there remains one single gap so critical that proceeding without it would make the result unusable. Otherwise stop and proceed with assumptions.\n\nExamples of things worth asking about:\n- Target audience\n- Desired outcome\n- Budget\n- Geographic market\n- Brand tone\n- Intended platform\n- Required format\n- Important constraints\n- Deadline\n- Personal preferences that cannot be inferred or researched\n\nExamples of things you should NOT ask about:\n- Competitors that can be researched\n- Market trends\n- Technical implementation\n- How to divide the work between agents\n- Information that can reasonably be inferred from context\n\nReturn JSON:\n\n{\n  \"needsClarification\": true | false,\n  \"questions\": [\n    {\n      \"question\": \"string\",\n      \"reason\": \"string\",\n      \"options\": [\"string\", \"string\", \"string\"]\n    }\n  ]\n}\n\nIf clarification is not required, return:\n\n{\n  \"needsClarification\": false,\n  \"questions\": []\n}\n\nUser request:\n{{USER_PROMPT}}\n\nCurrent execution plan:\n{{DEPLOY_PLAN}}",
+      "avatarBg": "bg-rose-100"
+    }
+  ]
+}
