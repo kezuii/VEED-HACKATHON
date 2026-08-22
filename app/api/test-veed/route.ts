@@ -8,30 +8,35 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const imageFile = formData.get("image") as File | null;
+    const imageFiles = formData.getAll("images").filter((item): item is File => item instanceof File);
+    const fallbackImage = formData.get("image");
+    const selectedImages = imageFiles.length > 0 ? imageFiles : fallbackImage instanceof File ? [fallbackImage] : [];
     const script = (formData.get("text") as string) || "";
     const resolution = (formData.get("resolution") as string) || "480p";
 
-    if (!imageFile || !script) {
+    if (selectedImages.length === 0 || !script) {
       return NextResponse.json(
-        { error: "Both an image and text are required." },
-        { status: 400 }
-      );
-    }
-    if (!ACCEPTED_TYPES.includes(imageFile.type)) {
-      return NextResponse.json(
-        { error: `Unsupported image type: ${imageFile.type}` },
-        { status: 400 }
-      );
-    }
-    if (imageFile.size > MAX_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: `Image is too large (max 10MB, got ${(imageFile.size / 1024 / 1024).toFixed(1)}MB)` },
+        { error: "At least one image and text are required." },
         { status: 400 }
       );
     }
 
-    const imageUrl = await fal.storage.upload(imageFile);
+    const firstImage = selectedImages[0];
+
+    if (!ACCEPTED_TYPES.includes(firstImage.type)) {
+      return NextResponse.json(
+        { error: `Unsupported image type: ${firstImage.type}` },
+        { status: 400 }
+      );
+    }
+    if (firstImage.size > MAX_SIZE_BYTES) {
+      return NextResponse.json(
+        { error: `Image is too large (max 10MB, got ${(firstImage.size / 1024 / 1024).toFixed(1)}MB)` },
+        { status: 400 }
+      );
+    }
+
+    const imageUrl = await fal.storage.upload(firstImage);
 
     const ttsResult = await fal.subscribe("fal-ai/elevenlabs/tts/multilingual-v2", {
       input: { text: script, voice: "Aria" },
@@ -54,6 +59,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      selectedImageCount: selectedImages.length,
       videoUrl,
       imageUrl,
       audioUrl,
