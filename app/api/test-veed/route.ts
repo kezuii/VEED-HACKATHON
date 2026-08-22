@@ -12,7 +12,8 @@ export async function POST(request: Request) {
     const fallbackImage = formData.get("image");
     const selectedImages = imageFiles.length > 0 ? imageFiles : fallbackImage instanceof File ? [fallbackImage] : [];
     const script = (formData.get("text") as string) || "";
-    const resolution = (formData.get("resolution") as string) || "480p";
+    const requestedResolution = formData.get("resolution");
+    const resolution: "480p" | "720p" = requestedResolution === "720p" ? "720p" : "480p";
     const voice = (formData.get("voice") as string) || "Aria";
 
     if (selectedImages.length === 0 || !script) {
