@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VEED Hack — Multi-Agent Video Studio
+
+A Next.js 16 app that turns a single prompt into a plan of specialized AI agents, runs them
+(optionally with live web search), and renders the results as talking-avatar videos via VEED's
+Fabric model on fal.ai.
+
+## Requirements
+
+- **Node.js 20+**
+- **pnpm 10.33.0** — this repo pins its package manager via the `packageManager` field, so use
+  pnpm rather than npm or yarn. If you don't have it:
+
+  ```bash
+  corepack enable
+  corepack prepare pnpm@10.33.0 --activate
+  ```
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env.local` in the repo root (it is gitignored) with the three keys the app uses:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+OPENAI_API_KEY=sk-...      # planning, clarification, and agent execution (gpt-4o-mini)
+FAL_KEY=...                # fal.ai — VEED Fabric video + ElevenLabs TTS
+TAVILY_KEY=tvly-...        # web search context for the Researcher agent
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run the dev server:
 
-## Learn More
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | What it does |
+| --- | --- |
+| `pnpm dev` | Start the Next.js dev server on port 3000 |
+| `pnpm build` | Production build |
+| `pnpm start` | Serve the production build (run `pnpm build` first) |
+| `pnpm lint` | Run ESLint |
 
-## Deploy on Vercel
+## Pages
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/` — the prompt console ([components/prompt-console.tsx](components/prompt-console.tsx)), the main entry point
+- `/chat` — agent conversation view with markdown rendering
+- `/landing` — agent roster / character showcase
+- `/test` — sandbox for character selection, voice mapping, and video generation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Agents
+
+Agent profiles, prompts, and capabilities live in [lib/agents.json](lib/agents.json):
+
+| ID | Name | Role |
+| --- | --- | --- |
+| `strategist` | Ava | Strategist |
+| `copywriter` | Beau | Copywriter |
+| `video-producer` | Cleo | Video Producer |
+| `researcher` | Dex | Researcher |
+| `creative-director` | Elle | Creative Director |
+| `reviewer` | Finn | Reviewer |
+| `analyst` | Nia | Analyst |
+| `clarification` | Quinn | Clarification Agent |
+
+Each agent has a portrait in [public/images/](public/images/) (`<Name>.png` for the avatar,
+`<Name>_Full.png` for the full-body frame used as the video source image).
+
+## API Routes
+
+| Route | Method | Purpose |
+| --- | --- | --- |
+| `/api/initial-prompt` | POST | Decomposes a user prompt into agent tasks with a `dependsOn` graph |
+| `/api/clarify` | POST | Asks follow-up questions before planning (Quinn) |
+| `/api/deploy-agents` | POST | Turns a prompt into a concise deployment plan |
+| `/api/run-agent` | POST | Executes one agent task, injecting Tavily search context when relevant |
+| `/api/agent-video` | POST | Generates a talking-avatar video for an agent via `veed/fabric-1.0` |
+| `/api/test-veed` | POST | Multipart upload endpoint: image + script + voice → video |
+| `/api/tavily-search` | POST | Raw Tavily search passthrough |
+| `/api/list-images` | GET | Lists `*_Full.*` portraits from `public/images` |
+| `/api/health` | GET | Liveness check |
+
+## External services
+
+- **OpenAI** — `gpt-4o-mini` for planning, clarification, and agent execution
+- **fal.ai** — `veed/fabric-1.0` for avatar video, `fal-ai/elevenlabs/tts/multilingual-v2` for speech
+- **Tavily** — advanced web search (top 5 results plus a synthesized answer)
+
+Routes degrade gracefully when a key is missing: `tavilySearch` returns `null` without `TAVILY_KEY`,
+and the OpenAI-backed routes return a 500 naming the missing variable.
+
+## Notes
+
+- `AGENTS.md` / `CLAUDE.md` are regenerated by `next dev` — commit them alongside your changes to
+  keep the tree clean.
+- Ignore `package-lock.json` if you see it; `pnpm-lock.yaml` is the lockfile of record.

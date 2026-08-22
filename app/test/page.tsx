@@ -4,16 +4,16 @@ import CharacterSelect from '@/components/character-select';
 import { useState, useRef, type ChangeEvent } from 'react';
 
 const CHARACTER_VOICE_MAP: Record<string, string> = {
-  Alex: 'Allison',
-  Ava: 'Eve',
+  Alex: 'Brian',
+  Ava: 'Sarah',
   Beau: 'Matilda',
-  Cleo: 'Alesha',
+  Cleo: 'Alice',
   Dex: 'Bill',
-  Elle: 'Diane',
-  Finn: 'Hale',
-  Nia: 'Alexandra',
-  Noah: 'Jason',
-  Quinn: 'Justin',
+  Elle: 'Charlotte',
+  Finn: 'Liam',
+  Nia: 'Jessica',
+  Noah: 'George',
+  Quinn: 'Chris',
 };
 
 const ACCEPTED_AUDIO_TYPES = [

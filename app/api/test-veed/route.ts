@@ -13,6 +13,7 @@ export async function POST(request: Request) {
     const selectedImages = imageFiles.length > 0 ? imageFiles : fallbackImage instanceof File ? [fallbackImage] : [];
     const script = (formData.get("text") as string) || "";
     const resolution = (formData.get("resolution") as string) || "480p";
+    const voice = (formData.get("voice") as string) || "Aria";
 
     if (selectedImages.length === 0 || !script) {
       return NextResponse.json(
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
     const imageUrl = await fal.storage.upload(firstImage);
 
     const ttsResult = await fal.subscribe("fal-ai/elevenlabs/tts/multilingual-v2", {
-      input: { text: script, voice: "Aria" },
+      input: { text: script, voice },
     });
     const audioUrl = (ttsResult.data as any)?.audio?.url;
 
