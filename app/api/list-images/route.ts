@@ -11,7 +11,11 @@ export async function GET() {
     const files = fs.readdirSync(imagesDir);
 
     const images = files
-      .filter((f) => ACCEPTED_EXTENSIONS.includes(path.extname(f).toLowerCase()))
+      .filter((f) => {
+        const isImage = ACCEPTED_EXTENSIONS.includes(path.extname(f).toLowerCase());
+        const hasFull = f.toLowerCase().includes("full"); // "Full" 또는 "full"이 포함된 파일만 필터링
+        return isImage && hasFull;
+      })
       .map((f) => ({
         name: f,
         url: `/images/${f}`,

@@ -115,48 +115,31 @@ export default function CharacterSelect({ onImageSelected }: CharacterSelectProp
       </div>
 
       {imageMode === 'gallery' ? (
-        <>
-          <select
-            value={selectedGalleryUrl}
-            onChange={(e) => {
-              const img = galleryImages.find((i) => i.url === e.target.value);
-              if (img) handleSelectGalleryImage(img.url, img.name);
-            }}
-            className="mb-4 w-full rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm text-white focus:border-amber-500 focus:outline-none"
-          >
-            <option value="">Select an image...</option>
-            {galleryImages.map((img) => (
-              <option key={img.url} value={img.url}>
-                {img.name}
-              </option>
-            ))}
-          </select>
-
-          <div className="mb-4 grid grid-cols-4 gap-2">
-            {galleryImages.map((img) => (
-              <button
-                key={img.url}
-                type="button"
-                onClick={() => handleSelectGalleryImage(img.url, img.name)}
-                className={`relative overflow-hidden rounded-lg border-2 transition ${
-                  selectedGalleryUrl === img.url
-                    ? 'border-amber-500'
-                    : 'border-slate-700 hover:border-slate-500'
-                }`}
-              >
-                <img src={img.url} alt={img.name} className="h-20 w-full object-cover" />
-                {selectedGalleryUrl === img.url && (
-                  <span
-                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-slate-950 shadow"
-                    aria-label="Selected"
-                  >
-                    ✓
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </>
+        /* 드롭다운 없이 오직 썸네일 그리드만 표시 */
+        <div className="mb-4 grid grid-cols-4 gap-2">
+          {galleryImages.map((img) => (
+            <button
+              key={img.url}
+              type="button"
+              onClick={() => handleSelectGalleryImage(img.url, img.name)}
+              className={`relative overflow-hidden rounded-lg border-2 transition ${
+                selectedGalleryUrl === img.url
+                  ? 'border-amber-500'
+                  : 'border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <img src={img.url} alt={img.name} className="h-20 w-full object-cover" />
+              {selectedGalleryUrl === img.url && (
+                <span
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-slate-950 shadow"
+                  aria-label="Selected"
+                >
+                  ✓
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       ) : (
         <div
           onClick={() => imageInputRef.current?.click()}

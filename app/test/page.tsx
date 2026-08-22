@@ -16,7 +16,7 @@ const MAX_SIZE_MB = 25;
 type AudioMode = 'tts' | 'upload';
 
 export default function TestPage() {
-  const [script, setScript] = useState('Hello, welcome to our platform!');
+  const [script, setScript] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
 
@@ -158,7 +158,7 @@ export default function TestPage() {
           value={script}
           onChange={(e) => setScript(e.target.value)}
           rows={3}
-          placeholder="Enter the line your avatar should speak"
+          placeholder=""
           className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white mb-4 text-sm font-mono focus:outline-none focus:border-amber-500"
         />
       ) : (
@@ -202,7 +202,7 @@ export default function TestPage() {
       {/* Video Preview Section */}
       {videoUrl && (
         <div className="mb-6 flex flex-col items-center bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <p className="text-xs text-slate-400 mb-3 self-start font-mono">Generated Video Output:</p>
+          <p className="text-xs text-slate-400 mb-3 self-start font-mono"></p>
           <video
             src={videoUrl}
             controls
