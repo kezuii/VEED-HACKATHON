@@ -1,13 +1,5 @@
-import { Hero } from "@/components/hero";
-import { Features } from "@/components/features";
-import { ContactForm } from "@/components/contact-form";
+import { PromptConsole } from "@/components/prompt-console";
 
 export default function Home() {
-  return (
-    <>
-      <Hero />
-      <Features />
-      <ContactForm />
-    </>
-  );
+  return <PromptConsole />;
 }
