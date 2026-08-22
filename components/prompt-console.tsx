@@ -65,11 +65,20 @@ export function PromptConsole() {
   }
 
   async function handleDeployAgents() {
+    if (!prompt.trim()) {
+      setDeployError("Please enter a prompt before deploying agents.");
+      return;
+    }
+
     setDeployLoading(true);
     setDeployError(null);
 
     try {
-      const res = await fetch("/api/deploy-agents", { method: "POST" });
+      const res = await fetch("/api/deploy-agents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
       const json = await res.json();
 
       if (!res.ok) {
@@ -122,7 +131,7 @@ export function PromptConsole() {
       <button
         type="button"
         onClick={handleDeployAgents}
-        disabled={deployLoading}
+        disabled={deployLoading || !prompt.trim()}
         className="flex h-11 w-fit items-center justify-center rounded-full border border-solid border-black/[.08] px-6 text-sm font-medium transition-colors hover:border-transparent hover:bg-black/[.04] disabled:opacity-60 dark:border-white/[.145] dark:hover:bg-[#1a1a1a]"
       >
         {deployLoading ? "Deploying..." : "Deploy agents"}
