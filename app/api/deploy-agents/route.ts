@@ -1,9 +1,5 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -22,12 +18,16 @@ export async function POST(request: Request) {
     return Response.json({ error: "Prompt is required." }, { status: 400 });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
     return Response.json(
       { error: "OPENAI_API_KEY is missing. Check your .env.local file." },
       { status: 500 },
     );
   }
+
+  const openai = new OpenAI({ apiKey });
 
   try {
     const completion = await openai.chat.completions.create({
