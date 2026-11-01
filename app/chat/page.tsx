@@ -97,6 +97,11 @@ type TavilySearchPayload = {
 
 type VideoStatus = "idle" | "generating" | "done" | "error";
 
+// Avatar videos (ElevenLabs TTS + VEED Fabric on fal.ai) are paid per run.
+// They are off unless NEXT_PUBLIC_ENABLE_VIDEO=true, so the app always
+// finishes with a text summary even when no video credits are available.
+const VIDEO_ENABLED = process.env.NEXT_PUBLIC_ENABLE_VIDEO === "true";
+
 type ThinkingAgent = {
   id: string;
   taskKey: string;
@@ -683,7 +688,7 @@ export default function TestPage() {
                   searching: false,
                   resultSummary,
                   thoughts: thoughts && thoughts.length > 0 ? thoughts : null,
-                  videoStatus: resultSummary ? "generating" : "idle",
+                  videoStatus: resultSummary && VIDEO_ENABLED ? "generating" : "idle",
                 }
               : {
                   ...item,
@@ -697,7 +702,7 @@ export default function TestPage() {
       );
       onSettled?.({ ok: response.ok, output });
 
-      if (response.ok && resultSummary) {
+      if (response.ok && resultSummary && VIDEO_ENABLED) {
         void generateAgentVideo(agent.taskKey, agent.agentId, resultSummary);
       }
     } catch (error) {
@@ -1323,6 +1328,21 @@ export default function TestPage() {
                                   {agent.resultSummary}
                                 </p>
                               )
+                            ) : !hasVideoBubble ? (
+                              <>
+                                <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
+                                  {agent.resultSummary}
+                                </p>
+                                {agent.output !== null && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOutputSelect(agent.taskKey)}
+                                    className="mt-2.5 rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
+                                  >
+                                    View full result
+                                  </button>
+                                )}
+                              </>
                             ) : agent.thoughts && agent.thoughts.length > 0 ? (
                               <ul className="mt-1.5 space-y-1">
                                 {agent.thoughts.map((thought, thoughtIndex) => (
@@ -1378,8 +1398,8 @@ export default function TestPage() {
                       {agent.videoStatus === "error" && (
                         <>
                           <ClarificationConnector />
-                          <div className="relative z-10 w-full rounded-2xl bg-white px-4 py-3 text-sm text-red-600 shadow-lg">
-                            Video generation failed.
+                          <div className="relative z-10 w-full rounded-2xl bg-white px-4 py-3 text-xs text-zinc-500 shadow-lg">
+                            Video unavailable right now. The text summary above has the result.
                           </div>
                         </>
                       )}

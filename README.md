@@ -33,7 +33,12 @@ Create a `.env.local` in the repo root (it is gitignored) with the three keys th
 OPENAI_API_KEY=sk-...      # planning, clarification, and agent execution (gpt-4o-mini)
 FAL_KEY=...                # fal.ai — VEED Fabric video + ElevenLabs TTS
 TAVILY_KEY=tvly-...        # web search context for the Researcher agent
+NEXT_PUBLIC_ENABLE_VIDEO=false  # set to "true" to turn on avatar videos (uses fal.ai credits)
 ```
+
+Avatar videos are **off by default**. Each agent then finishes with a short text summary and a
+"View full result" button. With `NEXT_PUBLIC_ENABLE_VIDEO=true` the app also makes a talking-avatar
+video per agent; if that fails (for example, no fal.ai credits left), the text summary stays on screen.
 
 Run the dev server:
 
