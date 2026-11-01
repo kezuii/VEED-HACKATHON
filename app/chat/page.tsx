@@ -97,9 +97,10 @@ type TavilySearchPayload = {
 
 type VideoStatus = "idle" | "generating" | "done" | "error";
 
-// Avatar videos (ElevenLabs TTS + VEED Fabric on fal.ai) are paid per run.
-// They are off unless NEXT_PUBLIC_ENABLE_VIDEO=true, so the app always
-// finishes with a text summary even when no video credits are available.
+// Avatar videos (ElevenLabs TTS + VEED Fabric on fal.ai) cost about $1 each.
+// Every agent always finishes with a text summary. When
+// NEXT_PUBLIC_ENABLE_VIDEO=true, a "Watch as video" button lets the viewer
+// generate the avatar video on demand, so credits are only spent when asked.
 const VIDEO_ENABLED = process.env.NEXT_PUBLIC_ENABLE_VIDEO === "true";
 
 type ThinkingAgent = {
@@ -688,7 +689,7 @@ export default function TestPage() {
                   searching: false,
                   resultSummary,
                   thoughts: thoughts && thoughts.length > 0 ? thoughts : null,
-                  videoStatus: resultSummary && VIDEO_ENABLED ? "generating" : "idle",
+                  videoStatus: "idle",
                 }
               : {
                   ...item,
@@ -702,9 +703,6 @@ export default function TestPage() {
       );
       onSettled?.({ ok: response.ok, output });
 
-      if (response.ok && resultSummary && VIDEO_ENABLED) {
-        void generateAgentVideo(agent.taskKey, agent.agentId, resultSummary);
-      }
     } catch (error) {
       console.error(`Agent ${agent.agentId} failed:`, error);
       setThinkingAgents((prev) =>
@@ -719,6 +717,9 @@ export default function TestPage() {
   }
 
   async function generateAgentVideo(taskKey: string, agentId: string, script: string) {
+    setThinkingAgents((prev) =>
+      prev.map((item) => (item.taskKey === taskKey ? { ...item, videoStatus: "generating" } : item))
+    );
     try {
       const response = await fetch("/api/agent-video", {
         method: "POST",
@@ -1317,31 +1318,43 @@ export default function TestPage() {
                                 }`}
                               />
                               <p className="text-sm font-medium text-zinc-700">
-                                {agent.videoStatus === "generating" ? "Thinking it through..." : "Done"}
+                                {agent.videoStatus === "generating" ? "Making video..." : "Done"}
                               </p>
                             </div>
-                            {agent.videoStatus === "generating" ? (
-                              agent.thoughts && agent.thoughts.length > 0 ? (
-                                <ThoughtsCycler thoughts={agent.thoughts} />
-                              ) : (
-                                <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
-                                  {agent.resultSummary}
-                                </p>
-                              )
-                            ) : !hasVideoBubble ? (
+                            {!hasVideoBubble ? (
                               <>
                                 <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
                                   {agent.resultSummary}
                                 </p>
-                                {agent.output !== null && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOutputSelect(agent.taskKey)}
-                                    className="mt-2.5 rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
-                                  >
-                                    View full result
-                                  </button>
+                                {agent.videoStatus === "generating" && (
+                                  <p className="mt-1.5 text-xs text-zinc-400">This takes about a minute.</p>
                                 )}
+                                <div className="mt-2.5 flex flex-wrap gap-2">
+                                  {agent.output !== null && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOutputSelect(agent.taskKey)}
+                                      className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
+                                    >
+                                      View full result
+                                    </button>
+                                  )}
+                                  {VIDEO_ENABLED && agent.videoStatus !== "generating" && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        void generateAgentVideo(
+                                          agent.taskKey,
+                                          agent.agentId,
+                                          agent.resultSummary ?? ""
+                                        )
+                                      }
+                                      className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-200"
+                                    >
+                                      {agent.videoStatus === "error" ? "Try video again" : "Watch as video"}
+                                    </button>
+                                  )}
+                                </div>
                               </>
                             ) : agent.thoughts && agent.thoughts.length > 0 ? (
                               <ul className="mt-1.5 space-y-1">
