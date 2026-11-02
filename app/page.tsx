@@ -52,7 +52,7 @@ export default function LandingPage() {
 
   return (
     <div
-      className="relative flex h-screen w-full flex-col overflow-hidden"
+      className="relative flex h-screen w-full flex-col overflow-hidden [--heading-size:clamp(3rem,min(13vw,17svh),9rem)]"
       style={{
         backgroundColor: "#ffffff",
           // backgroundImage:
@@ -62,13 +62,14 @@ export default function LandingPage() {
     >
       {/* Giant background heading, interrupted by the card stack */}
       <div className="pointer-events-none absolute inset-x-0 top-[7%] z-0 flex justify-center sm:top-[10%]">
-        <p className="select-none whitespace-nowrap text-[clamp(3rem,13vw,9rem)] font-black uppercase leading-none tracking-tight text-zinc-900">
+        <p className="select-none whitespace-nowrap text-[length:var(--heading-size)] font-black uppercase leading-none tracking-tight text-zinc-900">
           AgentClub
         </p>
       </div>
 
-      {/* Card stack + intro. Sizes follow the screen height so "Start Now" stays visible on laptops. */}
-      <div className="relative z-10 flex flex-shrink-0 flex-col items-center pt-[clamp(72px,15svh,190px)]">
+      {/* Card stack + intro. The card starts just under the heading (overlapping it slightly on larger
+          screens) and its size follows the screen height so "Start Now" stays visible on laptops. */}
+      <div className="relative z-10 flex flex-shrink-0 flex-col items-center pt-[var(--card-top)] [--card-top:calc(7svh+var(--heading-size)+12px)] sm:[--card-top:calc(10svh+var(--heading-size)-20px)]">
       <div className="relative mx-auto flex items-center justify-center gap-4 sm:gap-8">
         <button
           type="button"
@@ -83,7 +84,7 @@ export default function LandingPage() {
 
         <div
           className="relative aspect-[3/4]"
-          style={{ width: "min(300px, calc(100vw - 140px), calc((86svh - 300px) * 0.75))" }}
+          style={{ width: "min(300px, calc(100vw - 140px), calc((100svh - var(--card-top) - 270px) * 0.75))" }}
         >
         {AGENTS.map((agent, agentIndex) => {
           const position = (agentIndex - index + TOTAL) % TOTAL;
