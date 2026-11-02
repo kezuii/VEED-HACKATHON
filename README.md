@@ -33,14 +33,14 @@ Create a `.env.local` in the repo root (it is gitignored) with the three keys th
 OPENAI_API_KEY=sk-...      # planning, clarification, and agent execution (gpt-4o-mini)
 FAL_KEY=...                # fal.ai — VEED Fabric video + ElevenLabs TTS
 TAVILY_KEY=tvly-...        # web search context for the Researcher agent
-NEXT_PUBLIC_ENABLE_VIDEO=true  # show the "Watch as video" button (uses fal.ai credits)
+# NEXT_PUBLIC_DISABLE_VIDEO=true  # optional: hide the "Watch as video" button
 ```
 
-Each agent finishes with a short text summary and a **View full result** button. Avatar videos
-cost about $1 each (ElevenLabs TTS + VEED Fabric), so they are made **on demand**: with
-`NEXT_PUBLIC_ENABLE_VIDEO=true`, a **Watch as video** button generates the video only when a viewer
-asks for it. If generation fails (for example, no fal.ai credits left), the summary stays on screen
-and the viewer can try again. Without the variable, the app runs on OpenAI alone.
+Each agent finishes with a short text summary, a **View full result** button and a
+**Watch as video** button. Avatar videos cost about $1 each (ElevenLabs TTS + VEED Fabric), so they
+are made **on demand**, only when a viewer clicks the button. If generation fails (for example, no
+fal.ai credits left), the summary stays on screen and the viewer can try again. To run on OpenAI
+alone, set `NEXT_PUBLIC_DISABLE_VIDEO=true`.
 
 Run the dev server:
 

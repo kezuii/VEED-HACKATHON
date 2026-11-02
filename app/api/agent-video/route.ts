@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Script is required." }, { status: 400 });
   }
 
-  if (process.env.NEXT_PUBLIC_ENABLE_VIDEO !== "true") {
+  if (process.env.NEXT_PUBLIC_DISABLE_VIDEO === "true") {
     return NextResponse.json({ error: "Video generation is turned off." }, { status: 503 });
   }
 

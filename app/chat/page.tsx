@@ -98,10 +98,10 @@ type TavilySearchPayload = {
 type VideoStatus = "idle" | "generating" | "done" | "error";
 
 // Avatar videos (ElevenLabs TTS + VEED Fabric on fal.ai) cost about $1 each.
-// Every agent always finishes with a text summary. When
-// NEXT_PUBLIC_ENABLE_VIDEO=true, a "Watch as video" button lets the viewer
-// generate the avatar video on demand, so credits are only spent when asked.
-const VIDEO_ENABLED = process.env.NEXT_PUBLIC_ENABLE_VIDEO === "true";
+// Every agent always finishes with a text summary, and a "Watch as video"
+// button generates the avatar video on demand, so credits are only spent when
+// asked. Set NEXT_PUBLIC_DISABLE_VIDEO=true to hide the button entirely.
+const VIDEO_ENABLED = process.env.NEXT_PUBLIC_DISABLE_VIDEO !== "true";
 
 type ThinkingAgent = {
   id: string;
@@ -1318,16 +1318,20 @@ export default function TestPage() {
                                 }`}
                               />
                               <p className="text-sm font-medium text-zinc-700">
-                                {agent.videoStatus === "generating" ? "Making video..." : "Done"}
+                                {agent.videoStatus === "generating" ? "Thinking it through..." : "Done"}
                               </p>
                             </div>
                             {!hasVideoBubble ? (
                               <>
-                                <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
-                                  {agent.resultSummary}
-                                </p>
+                                {agent.videoStatus === "generating" && agent.thoughts && agent.thoughts.length > 0 ? (
+                                  <ThoughtsCycler thoughts={agent.thoughts} />
+                                ) : (
+                                  <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
+                                    {agent.resultSummary}
+                                  </p>
+                                )}
                                 {agent.videoStatus === "generating" && (
-                                  <p className="mt-1.5 text-xs text-zinc-400">This takes about a minute.</p>
+                                  <p className="mt-1.5 text-xs text-zinc-400">Making the video takes about a minute.</p>
                                 )}
                                 <div className="mt-2.5 flex flex-wrap gap-2">
                                   {agent.output !== null && (
