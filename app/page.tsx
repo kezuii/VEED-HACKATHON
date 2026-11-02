@@ -52,7 +52,7 @@ export default function LandingPage() {
 
   return (
     <div
-      className="relative flex h-screen w-full flex-col overflow-hidden"
+      className="relative flex h-screen w-full flex-col overflow-hidden [--heading-size:clamp(3rem,min(13vw,17svh),9rem)]"
       style={{
         backgroundColor: "#ffffff",
           // backgroundImage:
@@ -61,14 +61,16 @@ export default function LandingPage() {
       }}
     >
       {/* Giant background heading, interrupted by the card stack */}
-      <div className="pointer-events-none absolute inset-x-0 top-[20%] z-0 flex justify-center sm:top-[10%]">
-        <p className="select-none whitespace-nowrap text-[clamp(3rem,13vw,9rem)] font-black uppercase leading-none tracking-tight text-zinc-900">
+      <div className="pointer-events-none absolute inset-x-0 top-[7%] z-0 flex justify-center sm:top-[10%]">
+        <p className="select-none whitespace-nowrap text-[length:var(--heading-size)] font-black uppercase leading-none tracking-tight text-zinc-900">
           AgentClub
         </p>
       </div>
 
-      {/* Card stack */}
-      <div className="relative z-10 mx-auto flex flex-shrink-0 items-center justify-center gap-4 sm:gap-8">
+      {/* Card stack + intro. The card starts just under the heading (overlapping it slightly on larger
+          screens) and its size follows the screen height so "Start Now" stays visible on laptops. */}
+      <div className="relative z-10 flex flex-shrink-0 flex-col items-center pt-[var(--card-top)] [--card-top:calc(7svh+var(--heading-size)+12px)] sm:[--card-top:calc(10svh+var(--heading-size)-20px)]">
+      <div className="relative mx-auto flex items-center justify-center gap-4 sm:gap-8">
         <button
           type="button"
           onClick={prev}
@@ -80,7 +82,10 @@ export default function LandingPage() {
           </svg>
         </button>
 
-        <div className="relative aspect-[3/4] w-[400px] sm:w-[600px]">
+        <div
+          className="relative aspect-[3/4]"
+          style={{ width: "min(300px, calc(100vw - 140px), calc((100svh - var(--card-top) - 270px) * 0.75))" }}
+        >
         {AGENTS.map((agent, agentIndex) => {
           const position = (agentIndex - index + TOTAL) % TOTAL;
           const style = STACK_STYLE[position] ?? HIDDEN_STYLE;
@@ -94,7 +99,7 @@ export default function LandingPage() {
               tabIndex={isFront ? 0 : -1}
               aria-hidden={!isFront}
               aria-label={isFront ? `Next agent, currently viewing ${agent.name}` : undefined}
-              className="absolute inset-0 overflow-hidden rounded-[28px] shadow-xl outline-none transition-transform duration-500 ease-out focus-visible:ring-2 focus-visible:ring-zinc-400"
+              className="absolute h-full w-full overflow-hidden rounded-[28px] shadow-xl outline-none transition-transform duration-500 ease-out focus-visible:ring-2 focus-visible:ring-zinc-400"
               style={{
                 transform: `translate(-50%, -50%) translate(${style.x}px, ${style.y}px) rotate(${style.rotate}deg) scale(${style.scale})`,
                 left: "50%",
@@ -124,8 +129,21 @@ export default function LandingPage() {
             </button>
           );
         })}
+        </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-50 flex flex-col items-center gap-4 px-6 pb-7 pt-20 text-center">
+        <button
+          type="button"
+          onClick={next}
+          aria-label="Next agent"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-zinc-800"
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+        <div className="flex w-[min(640px,calc(100vw-32px))] flex-col items-center gap-4 px-6 pt-8 text-center">
           <p className="text-lg font-semibold leading-snug text-black sm:text-xl">
             Meet your new AI team.
             <br />
@@ -139,18 +157,6 @@ export default function LandingPage() {
             Start Now
           </button>
         </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={next}
-          aria-label="Next agent"
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-zinc-800"
-        >
-          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
-            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
       </div>
 
       {/* Bottom bar */}

@@ -4,6 +4,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import agentsData from "@/lib/agents.json";
 
+// TTS + video generation can take a few minutes; allow the function to run that long on Vercel.
+export const maxDuration = 300;
+
 const AGENTS = agentsData.agents;
 
 const AVATAR_FULL_FILENAME: Record<string, string> = {
@@ -45,6 +48,10 @@ export async function POST(request: Request) {
 
   if (!script.trim()) {
     return NextResponse.json({ error: "Script is required." }, { status: 400 });
+  }
+
+  if (process.env.NEXT_PUBLIC_DISABLE_VIDEO === "true") {
+    return NextResponse.json({ error: "Video generation is turned off." }, { status: 503 });
   }
 
   if (!process.env.FAL_KEY) {

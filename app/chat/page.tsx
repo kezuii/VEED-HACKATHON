@@ -97,6 +97,12 @@ type TavilySearchPayload = {
 
 type VideoStatus = "idle" | "generating" | "done" | "error";
 
+// Avatar videos (ElevenLabs TTS + VEED Fabric on fal.ai) cost about $1 each.
+// Every agent always finishes with a text summary, and a "Watch as video"
+// button generates the avatar video on demand, so credits are only spent when
+// asked. Set NEXT_PUBLIC_DISABLE_VIDEO=true to hide the button entirely.
+const VIDEO_ENABLED = process.env.NEXT_PUBLIC_DISABLE_VIDEO !== "true";
+
 type ThinkingAgent = {
   id: string;
   taskKey: string;
@@ -683,7 +689,7 @@ export default function TestPage() {
                   searching: false,
                   resultSummary,
                   thoughts: thoughts && thoughts.length > 0 ? thoughts : null,
-                  videoStatus: resultSummary ? "generating" : "idle",
+                  videoStatus: "idle",
                 }
               : {
                   ...item,
@@ -697,9 +703,6 @@ export default function TestPage() {
       );
       onSettled?.({ ok: response.ok, output });
 
-      if (response.ok && resultSummary) {
-        void generateAgentVideo(agent.taskKey, agent.agentId, resultSummary);
-      }
     } catch (error) {
       console.error(`Agent ${agent.agentId} failed:`, error);
       setThinkingAgents((prev) =>
@@ -714,6 +717,9 @@ export default function TestPage() {
   }
 
   async function generateAgentVideo(taskKey: string, agentId: string, script: string) {
+    setThinkingAgents((prev) =>
+      prev.map((item) => (item.taskKey === taskKey ? { ...item, videoStatus: "generating" } : item))
+    );
     try {
       const response = await fetch("/api/agent-video", {
         method: "POST",
@@ -940,9 +946,10 @@ export default function TestPage() {
       }}
     >
       {/* Floating sidebar */}
-      <aside className="absolute bottom-8 right-8 top-8 z-10 w-60 rounded-3xl bg-white p-6 shadow-lg">
-        <p className="text-lg font-semibold text-zinc-900">Agents:</p>
-        <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-5">
+      {/* On phones the roster is a single row across the top, so it never covers the prompt. */}
+      <aside className="absolute inset-x-4 top-4 z-10 rounded-3xl bg-white px-3 py-2.5 shadow-lg md:inset-x-auto md:bottom-8 md:right-8 md:top-8 md:w-60 md:p-6">
+        <p className="hidden text-lg font-semibold text-zinc-900 md:block">Agents:</p>
+        <div className="grid grid-cols-8 gap-1 md:mt-4 md:grid-cols-3 md:gap-x-4 md:gap-y-5">
           {sidebarAgents.map((agent) => (
             <div key={agent.id} className="flex flex-col items-center gap-1.5">
               <button
@@ -950,13 +957,13 @@ export default function TestPage() {
                 onClick={() => handleAgentSelect(agent.id)}
                 aria-label={`View ${AGENT_INFO[agent.id]?.name ?? agent.id} details`}
                 aria-expanded={selectedAgentId === agent.id}
-                className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl transition-colors duration-300 ${agent.bg} ring-offset-2 hover:ring-2 hover:ring-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 ${
+                className={`flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl transition-colors md:h-12 md:w-12 md:rounded-2xl duration-300 ${agent.bg} ring-offset-2 hover:ring-2 hover:ring-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 ${
                   selectedAgentId === agent.id ? "ring-2 ring-zinc-400" : ""
                 }`}
               >
                 <AgentIcon agentId={agent.id} dim={!isSubmitted} />
               </button>
-              <span className="text-xs text-zinc-700">
+              <span className="text-[10px] text-zinc-700 md:text-xs">
                 {AGENT_INFO[agent.id]?.name ?? agent.id}
               </span>
             </div>
@@ -974,7 +981,7 @@ export default function TestPage() {
             <aside
               role="dialog"
               aria-label={`${info.name} full result`}
-              className="absolute bottom-8 left-8 top-8 z-10 flex w-96 flex-col overflow-hidden rounded-3xl bg-white shadow-lg"
+              className="absolute inset-x-4 bottom-4 top-4 z-20 flex flex-col overflow-hidden rounded-3xl bg-white shadow-lg md:inset-x-auto md:bottom-8 md:left-8 md:top-8 md:z-10 md:w-96"
             >
               <div className="flex flex-none items-center justify-between gap-2 border-b border-zinc-100 px-6 py-4">
                 <div className="flex min-w-0 items-center gap-3">
@@ -1024,7 +1031,7 @@ export default function TestPage() {
             <aside
               role="dialog"
               aria-label={`${info.name} details`}
-              className="absolute bottom-8 left-8 top-8 z-10 w-72 overflow-y-auto rounded-3xl bg-white p-6 shadow-lg"
+              className="absolute inset-x-4 bottom-4 top-4 z-20 overflow-y-auto rounded-3xl bg-white p-6 shadow-lg md:inset-x-auto md:bottom-8 md:left-8 md:top-8 md:z-10 md:w-72"
             >
               <div className="flex items-start justify-between gap-2">
                 <div/>
@@ -1077,7 +1084,7 @@ export default function TestPage() {
       {/* Canvas content */}
       <div
         className={`relative z-0 flex h-full w-full select-none flex-col items-center px-6 ${
-          isSubmitted ? "justify-start pt-20 pb-20" : "justify-center"
+          isSubmitted ? "justify-start pb-20 pt-28 md:pt-20" : "justify-center"
         }`}
         style={{ cursor: isDragging ? "grabbing" : "grab", touchAction: "none" }}
         onPointerDown={handlePointerDown}
@@ -1315,14 +1322,45 @@ export default function TestPage() {
                                 {agent.videoStatus === "generating" ? "Thinking it through..." : "Done"}
                               </p>
                             </div>
-                            {agent.videoStatus === "generating" ? (
-                              agent.thoughts && agent.thoughts.length > 0 ? (
-                                <ThoughtsCycler thoughts={agent.thoughts} />
-                              ) : (
-                                <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
-                                  {agent.resultSummary}
-                                </p>
-                              )
+                            {!hasVideoBubble ? (
+                              <>
+                                {agent.videoStatus === "generating" && agent.thoughts && agent.thoughts.length > 0 ? (
+                                  <ThoughtsCycler thoughts={agent.thoughts} />
+                                ) : (
+                                  <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
+                                    {agent.resultSummary}
+                                  </p>
+                                )}
+                                {agent.videoStatus === "generating" && (
+                                  <p className="mt-1.5 text-xs text-zinc-400">Making the video takes about a minute.</p>
+                                )}
+                                <div className="mt-2.5 flex flex-wrap gap-2">
+                                  {agent.output !== null && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOutputSelect(agent.taskKey)}
+                                      className="rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
+                                    >
+                                      View full result
+                                    </button>
+                                  )}
+                                  {VIDEO_ENABLED && agent.videoStatus !== "generating" && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        void generateAgentVideo(
+                                          agent.taskKey,
+                                          agent.agentId,
+                                          agent.resultSummary ?? ""
+                                        )
+                                      }
+                                      className="rounded-full bg-violet-100 px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-200"
+                                    >
+                                      {agent.videoStatus === "error" ? "Try video again" : "Watch as video"}
+                                    </button>
+                                  )}
+                                </div>
+                              </>
                             ) : agent.thoughts && agent.thoughts.length > 0 ? (
                               <ul className="mt-1.5 space-y-1">
                                 {agent.thoughts.map((thought, thoughtIndex) => (
@@ -1378,8 +1416,8 @@ export default function TestPage() {
                       {agent.videoStatus === "error" && (
                         <>
                           <ClarificationConnector />
-                          <div className="relative z-10 w-full rounded-2xl bg-white px-4 py-3 text-sm text-red-600 shadow-lg">
-                            Video generation failed.
+                          <div className="relative z-10 w-full rounded-2xl bg-white px-4 py-3 text-xs text-zinc-500 shadow-lg">
+                            Video unavailable right now. The text summary above has the result.
                           </div>
                         </>
                       )}
